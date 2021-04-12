@@ -1,0 +1,11 @@
+.transferButton-header {
+    border-bottom: #E6E6E6 solid 1px;
+    border-top: #E6E6E6 solid 1px;
+    background-color:lightcoral;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+.transferButton-header > span {
+    font-weight: bolder;
+}
