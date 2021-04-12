@@ -33,6 +33,10 @@ DISCLAIMER The sample scripts are not supported under any Microsoft standard sup
 1. The createActivityMiddleware function translates special messages for communication and transferes.
 1. From a user standpoint it appears that a new chat is started but what really happens is each chat is hidden and shown based on what is currently the active channel. 
 
+# Note: 
+
+Depending on the version of NPM the --legacy-peer-deps flag may be needed during the `npm install` command
+
 # Needed improvements 
 1. Remove the context for hiding and showing the chat as a group and make it specific to each omni channel. This will allow the chat to end independently and the reinitialize
 2. Enable proper chat end on transfers and then enable past chat histry on re initialization. _The above will enable this._
