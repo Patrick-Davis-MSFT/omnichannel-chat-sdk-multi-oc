@@ -259,7 +259,7 @@ function ChatControl(props: any) {
             {
                 state.hasChatStarted && <div className="chat-container">
                     <ChatHeader
-                        title={'Chating: ' + props.btnText}
+                        title={'Chatting: ' + props.btnText}
                         onClick={endChat}
                     />
                     {
