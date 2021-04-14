@@ -14,19 +14,6 @@ function WebChat() {
   const [showWidget, setShowWidget] = useState(String);
   const [initMsg, setInitMsg] = useState(String);
 
-  const chatSDKConfig = {
-    getAuthToken: async () => {
-      // authoriztation token URI
-        const response = await fetch('https://vachatrouting.powerappsportals.com/_services/auth/token');
-        if (response.ok) {
-          console.log('Got Authenication: ' + response.text());
-            return await response.text();
-        }
-        else {
-            return null
-        }
-    }
-  }
 
   useEffect(() => {
     const init = async () => {
@@ -63,7 +50,6 @@ function WebChat() {
             omnichannelConfig={config}
             onTransferBot={onShowNext}
             autoOpen={openAuto}
-            auth={chatSDKConfig}
             showWidget={showWidget}
             initMsg={initMsg}
             btnText= {"Click Here to Chat"}/>
