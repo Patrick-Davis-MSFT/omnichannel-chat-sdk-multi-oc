@@ -3,4 +3,7 @@
     padding: 10px;
     display: flex;
     justify-content: space-between;
+    background: whitesmoke;
+    color: black;
+    font-weight: bold;
 }

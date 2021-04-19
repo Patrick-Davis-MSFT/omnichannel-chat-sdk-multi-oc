@@ -30,6 +30,7 @@ const styleOptions = {
     adaptiveCardsParserMaxVersion: '1.3'
 }
 
+
 function ChatControl(props: any) {
 
     const { state, dispatch } = useContext(Store);
@@ -74,16 +75,16 @@ function ChatControl(props: any) {
                     console.error('no channel configuration passed');
                     return;
                 }
+                
                 const chatSDKConfig = {
                     // Optional
                     dataMasking: {
                         disable: true,
                         maskingCharacter: '#'
                     },
-    
                     getAuthToken: async () => {
                         //Auth URL
-                        const url = "";
+                        const url = props.authURL;
                         const header = new Headers();
                         header.append('Accept', 'application/json');
                         header.append('Content-Type', 'application/json');

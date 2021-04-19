@@ -3,35 +3,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import ChatControl from '../ChatControl/ChatControl';
 import fetchOmnichannelConfig from '../../utils/fetchOmnichannelConfig';
+import fetchAuthURL from '../../utils/fetchAuthURL';
 import './WebChat.css';
 import IOmnichannelConfig from '@microsoft/omnichannel-chat-sdk/lib/core/IOmnichannelConfig';
-
-
 
 function WebChat() {
   const [configArr, setConfigArr] = useState<Array<IOmnichannelConfig>>();
   const [openAuto, setOpenAuto] = useState<boolean>();
   const [showWidget, setShowWidget] = useState(String);
   const [initMsg, setInitMsg] = useState(String);
-
-  const chatSDKConfig = {
-    getAuthToken: async () => {
-      // authoriztation token URI
-        const response = await fetch('https://vachatrouting.powerappsportals.com/_services/auth/token');
-        if (response.ok) {
-          console.log('Got Authenication: ' + response.text());
-            return await response.text();
-        }
-        else {
-            return null
-        }
-    }
-  }
+  const [authURL, setAuthURL] = useState(String);
 
   useEffect(() => {
     const init = async () => {
       const tempOmnichannelConfig = fetchOmnichannelConfig(false);
       const tempOmnichannelConfig2 = fetchOmnichannelConfig(true);
+      const tempAuthURL = fetchAuthURL();
+      console.log(tempAuthURL);
+      setAuthURL(tempAuthURL? tempAuthURL: "");
 
       let tempConfigArr = new Array();
       tempConfigArr.push(tempOmnichannelConfig);
@@ -63,9 +52,9 @@ function WebChat() {
             omnichannelConfig={config}
             onTransferBot={onShowNext}
             autoOpen={openAuto}
-            auth={chatSDKConfig}
             showWidget={showWidget}
             initMsg={initMsg}
+            authURL={authURL}
             btnText= {"Click Here to Chat"}/>
         </React.Fragment>))
         }

@@ -38,7 +38,7 @@ const createActivityMiddleware = (stateCallback: any ) => {
                         msg = card.activity.text.substr(card.activity.text.indexOf(transferMsgStart) + transferMsgStart.length);
                     }
                     
-                    card.activity.text = "<p>Click the <strong>red</strong> text to transfer</p>"
+                    card.activity.text = "Click the text below to transfer"
                     stateCallback(widgetTransfer, msg);
                 }
                 console.log(`%c [ActivityMiddleware][Message][Agent] ${card.activity.text}`, 'background: #2a9fd4; color: #fff');
@@ -57,6 +57,11 @@ const createActivityMiddleware = (stateCallback: any ) => {
             }
         }
 
+        card.activity.text = card.activity.text.replaceAll('<p>', "");
+        card.activity.text = card.activity.text.replaceAll('</p>', "");
+        card.activity.text = card.activity.text.replaceAll('<br>', "");
+        card.activity.text = card.activity.text.replaceAll('<strong>', "");
+        card.activity.text = card.activity.text.replaceAll('</strong>', "");
         return next(card); // Default Behavior
     }
 
