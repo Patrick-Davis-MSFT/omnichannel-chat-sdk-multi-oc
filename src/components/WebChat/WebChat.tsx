@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import ChatControl from '../ChatControl/ChatControl';
 import fetchOmnichannelConfig from '../../utils/fetchOmnichannelConfig';
 import fetchAuthURL from '../../utils/fetchAuthURL';
+import fetchOmnichannelCount from '../../utils/fetchOmnichannelCount';
 import './WebChat.css';
 import IOmnichannelConfig from '@microsoft/omnichannel-chat-sdk/lib/core/IOmnichannelConfig';
 
@@ -16,29 +17,33 @@ function WebChat() {
 
   useEffect(() => {
     const init = async () => {
-      const tempOmnichannelConfig = fetchOmnichannelConfig(false);
-      const tempOmnichannelConfig2 = fetchOmnichannelConfig(true);
+
+      const channelCount = fetchOmnichannelCount();
+      if (channelCount <= 1){
+        console.error('This code is optimized for multiple channels, For one channel please use another library.');
+      }
+      let tempConfigArr = new Array();
+      for (let i = 0; i < channelCount; i++) {
+        const tempOmniChanConfig = fetchOmnichannelConfig(i);
+        tempConfigArr.push(tempOmniChanConfig);
+        if (showWidget === "" && i === 0) {
+          //Set the initial widget to the first channel
+          setShowWidget(tempOmniChanConfig.widgetId);
+          setInitMsg("");
+        }
+      }
+
       const tempAuthURL = fetchAuthURL();
       console.log(tempAuthURL);
-      setAuthURL(tempAuthURL? tempAuthURL: "");
-
-      let tempConfigArr = new Array();
-      tempConfigArr.push(tempOmnichannelConfig);
-      tempConfigArr.push(tempOmnichannelConfig2);
+      setAuthURL(tempAuthURL ? tempAuthURL : "");
       setConfigArr(tempConfigArr);
       setOpenAuto(false);
-
-      if (showWidget === "") {
-        //Set the initial widget
-        setShowWidget(tempOmnichannelConfig.widgetId);
-        setInitMsg("");
-      }
     }
     init();
   }, [showWidget]);
 
   const onShowNext = useCallback(async (_, optionalParams = {}) => {
-    setOpenAuto(true); 
+    setOpenAuto(true);
     setShowWidget(optionalParams.widgetId);
     setInitMsg(optionalParams.msg);
   }, [showWidget, openAuto]);
@@ -55,7 +60,7 @@ function WebChat() {
             showWidget={showWidget}
             initMsg={initMsg}
             authURL={authURL}
-            btnText= {"Click Here to Chat"}/>
+            btnText={"Click Here to Chat"} />
         </React.Fragment>))
         }
       </>
