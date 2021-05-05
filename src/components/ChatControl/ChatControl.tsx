@@ -1,8 +1,9 @@
 /* DISCLAIMER The sample scripts are not supported under any Microsoft standard support program or service. This is intended to be used in non-production environment only. The sample scripts are provided AS IS without warranty of any kind. Microsoft further disclaims all implied warranties including, without limitation, any implied warranties of merchantability or of fitness for a particular purpose. The entire risk arising out of the use or performance of the sample scripts and documentation remains with you. In no event shall Microsoft, its authors, owners of this github repro, or anyone else involved in the creation, production, or delivery of the scripts be liable for any damages whatsoever (including without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss) arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages. */
-import React, { useCallback, useEffect, useState, useContext } from 'react';
+import React, { useCallback, useEffect, useState, useContext, useReducer } from 'react';
+import ReactDom from 'react-dom';
 import ReactWebChat from 'botframework-webchat';
 import { IRawMessage, OmnichannelChatSDK } from '@microsoft/omnichannel-chat-sdk';
-import { ActionType, Store } from '../../context';
+//import { ActionType, Store } from '../../context';
 import Loading from '../Loading/Loading';
 import ChatButton from '../ChatButton/ChatButton';
 import ChatHeader from '../ChatHeader/ChatHeader';
@@ -30,10 +31,41 @@ const styleOptions = {
     adaptiveCardsParserMaxVersion: '1.3'
 }
 
+interface ILocState {
+    hasChatStarted: boolean,
+    isLoading: boolean
+}
+
+function setLocChatStarted(state: ILocState | undefined, val: boolean) {
+    if (!state) {
+        var retVal = {
+            hasChatStarted: val,
+            isLoading: false
+        };
+        return retVal;
+    }
+    return { ...state, hasChatStarted: val };
+}
+
+function setLocLoading(state: ILocState | undefined, val: boolean) {
+    if (!state) {
+        var retVal = {
+            hasChatStarted: false,
+            isLoading: val
+        };
+        return retVal;
+    }
+    return { ...state, isLoading: val };
+}
 
 function ChatControl(props: any) {
 
-    const { state, dispatch } = useContext(Store);
+
+
+
+    const [locState, setLocState] = useState<ILocState>();
+
+    //const { state, dispatch } = useContext(Store);
     const [chatSDK, setChatSDK] = useState<OmnichannelChatSDK>();
     const [VoiceVideoCallingSDK, setVoiceVideoCallingSDK] = useState(undefined);
     const [transferActive, setTransferActive] = useState(Boolean);
@@ -64,18 +96,18 @@ function ChatControl(props: any) {
                     localStorage.removeItem(key);
                 }
             });
-    
+
             if (chatSDK === undefined) {
-    
-    
+
+
                 console.log('[ChatControl -> init()]');
                 console.log(props);
-    
+
                 if (props === undefined || props.omnichannelConfig === undefined) {
                     console.error('no channel configuration passed');
                     return;
                 }
-                
+
                 const chatSDKConfig = {
                     // Optional
                     dataMasking: {
@@ -89,23 +121,23 @@ function ChatControl(props: any) {
                         header.append('Accept', 'application/json');
                         header.append('Content-Type', 'application/json');
                         header.append('Cache', 'no-cache');
-    
+
                         const response = await fetch(url, { method: 'GET', credentials: 'same-origin', headers: header });
                         if (response.ok) {
                             console.log('Got Authenication :)');
                             return await response.text();
                         }
                         else {
-    
+
                             console.log('No Auth :(');
                             return null
                         }
                     }
                 }
-    
+
                 const chatSDK = new OmnichannelChatSDK(props.omnichannelConfig, chatSDKConfig);
                 //const chatSDK = new OmnichannelChatSDK(props.omnichannelConfig);
-    
+
                 await chatSDK.initialize();
                 setChatSDK(chatSDK);
                 setThisStarted(false);
@@ -114,7 +146,7 @@ function ChatControl(props: any) {
                     console.log("[liveChatContext]");
                     console.log(liveChatContext);
                 }
-    
+
                 if ((chatSDK as any).getVoiceVideoCalling) {
                     try {
                         const VoiceVideoCalling = await (chatSDK as any).getVoiceVideoCalling();
@@ -127,15 +159,15 @@ function ChatControl(props: any) {
                 }
             }
         }
-        console.log(state);
         init();
-    }, [state]);
+    }, [locState]);
 
     //record events
     const onNewMessage = useCallback((message: IRawMessage) => {
         console.log(`[onNewMessage] ${message.content}`);
-        dispatch({ type: ActionType.SET_LOADING, payload: false });
-    }, [dispatch]);
+        const tempState = setLocLoading(locState,false);
+        setLocState(tempState);
+    }, []);
 
     const onTypingEvent = useCallback(() => {
         console.log(`[onTypingEvent]`);
@@ -146,7 +178,7 @@ function ChatControl(props: any) {
     }, []);
 
     const startChat = useCallback(async (_, optionalParams = {}) => {
-        if (state.hasChatStarted || chatSDK === undefined) {
+        if (locState?.hasChatStarted || chatSDK === undefined) {
             if (!(optionalParams.ignoreStarted && chatSDK !== undefined && !thisStarted)) {
                 return;
             }
@@ -168,8 +200,9 @@ function ChatControl(props: any) {
             optionalParams.liveChatContext = JSON.parse(cachedLiveChatContext);
         }
 
-        dispatch({ type: ActionType.SET_CHAT_STARTED, payload: true });
-        dispatch({ type: ActionType.SET_LOADING, payload: true });
+        let tempState = setLocChatStarted(locState, true);
+        tempState = setLocLoading(tempState, true);
+
         await chatSDK?.startChat(optionalParams);
 
         // Cache current conversation context
@@ -185,12 +218,12 @@ function ChatControl(props: any) {
         // Recommended way to listen to messages when using WebChat
         (chatAdapter as any).activity$.subscribe((activity: any) => {
             console.log(`[activity] ${activity.text}`);
-            dispatch({ type: ActionType.SET_LOADING, payload: false });
+            tempState = setLocLoading(tempState, false);            
         });
 
         setChatAdapter(chatAdapter);
         setThisStarted(true);
-        dispatch({ type: ActionType.SET_LOADING, payload: false });
+        tempState = setLocLoading(tempState, false);
 
         if (props.initMsg !== "") {
             sendInitMessage(props.initMsg);
@@ -200,7 +233,9 @@ function ChatControl(props: any) {
             const chatToken: any = await chatSDK?.getChatToken();
             setChatToken(chatToken);
         }
-    }, [chatSDK, state, dispatch, onAgentEndSession, onNewMessage, onTypingEvent]);
+        
+        setLocState(tempState);
+    }, [chatSDK, onAgentEndSession, onNewMessage, onTypingEvent]);
 
 
     const endChat = useCallback(async () => {
@@ -212,15 +247,14 @@ function ChatControl(props: any) {
         setChatAdapter(undefined);
         setChatToken(undefined);
         localStorage.removeItem('liveChatContext-' + props.omnichannelConfig.widgetId);
-        dispatch({ type: ActionType.SET_CHAT_STARTED, payload: false });
-    }, [chatSDK, dispatch, VoiceVideoCallingSDK]);
+        const tempState = setLocChatStarted(locState, false);
+        setLocState(tempState);
+    }, [chatSDK, VoiceVideoCallingSDK]);
 
     const TransferClick = useCallback(async (_, optionalParams = {}) => {
         let retVal = { widgetId: transferTo, msg: transferMsg };
         await props.onTransferBot(_, retVal);
         setTransferActive(false);
-        console.log('transferState');
-        console.log(state);
     }, [props.showWidget, transferActive, transferTo]);
 
     const AutoOpen = async () => {
@@ -254,17 +288,17 @@ function ChatControl(props: any) {
         return (<>
             <div>
                 {
-                    !state.hasChatStarted && <ChatButton btnText={props.btnText} onClick={startChat} />
+                    !locState?.hasChatStarted && <ChatButton btnText={props.btnText} onClick={startChat} />
                 }
             </div>
             {
-                state.hasChatStarted && <div className="chat-container">
+                locState?.hasChatStarted && <div className="chat-container">
                     <ChatHeader
-                        title={'Chating: ' + props.btnText}
+                        title={'Chatting: ' + props.btnText}
                         onClick={endChat}
                     />
                     {
-                        state.isLoading && <Loading />
+                        locState?.isLoading && <Loading />
                     }
                     {
                         VoiceVideoCallingSDK && chatToken && <Calling
@@ -274,7 +308,7 @@ function ChatControl(props: any) {
                         />
                     }
                     {
-                        !state.isLoading && state.hasChatStarted && chatAdapter && webChatStore && activityMiddleware && <ReactWebChat
+                        !locState?.isLoading && locState?.hasChatStarted && chatAdapter && webChatStore && activityMiddleware && <ReactWebChat
                             activityMiddleware={activityMiddleware}
                             avatarMiddleware={avatarMiddleware}
                             userID="teamsvisitor"
@@ -285,13 +319,13 @@ function ChatControl(props: any) {
                         />
                     }
                     {/*
-                            !state.isLoading && state.hasChatStarted && chatAdapter && <ActionBar
+                            !locState.isLoading && locState.hasChatStarted && chatAdapter && <ActionBar
                                 onDownloadClick={downloadTranscript}
                                 onEmailTranscriptClick={emailTranscript}
                             />*/
                     }
                     {
-                        !state.isLoading && state.hasChatStarted && chatAdapter && transferActive && <TransferButton
+                        !locState.isLoading && locState.hasChatStarted && chatAdapter && transferActive && <TransferButton
                             buttonString="Click Me To Transfer"
                             hide={false}
                             onClick={TransferClick}
