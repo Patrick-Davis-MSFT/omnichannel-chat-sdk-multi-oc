@@ -70,7 +70,7 @@ function ChatControl(props: any) {
     const [VoiceVideoCallingSDK, setVoiceVideoCallingSDK] = useState(undefined);
     const [transferActive, setTransferActive] = useState(Boolean);
     const [transferTo, setTransferTo] = useState(String);
-    const [thisStarted, setThisStarted] = useState(Boolean);
+    //const [thisStarted, setThisStarted] = useState(Boolean);
     const [webChatStore, setWebChatStore] = useState(undefined);
     const [chatAdapter, setChatAdapter] = useState<any>(undefined);
     const [chatToken, setChatToken] = useState(undefined);
@@ -140,7 +140,6 @@ function ChatControl(props: any) {
 
                 await chatSDK.initialize();
                 setChatSDK(chatSDK);
-                setThisStarted(false);
                 const liveChatContext = localStorage.getItem('liveChatContext-' + props.omnichannelConfig.widgetId);
                 if (liveChatContext && Object.keys(JSON.parse(liveChatContext)).length > 0) {
                     console.log("[liveChatContext]");
@@ -179,7 +178,7 @@ function ChatControl(props: any) {
 
     const startChat = useCallback(async (_, optionalParams = {}) => {
         if (locState?.hasChatStarted || chatSDK === undefined) {
-            if (!(optionalParams.ignoreStarted && chatSDK !== undefined && !thisStarted)) {
+            if (!(optionalParams.ignoreStarted && chatSDK !== undefined)) {
                 return;
             }
         }
@@ -222,7 +221,6 @@ function ChatControl(props: any) {
         });
 
         setChatAdapter(chatAdapter);
-        setThisStarted(true);
         tempState = setLocLoading(tempState, false);
 
         if (props.initMsg !== "") {
@@ -262,7 +260,7 @@ function ChatControl(props: any) {
     }
 
     const sendInitMessage = (msg: string) => {
-        if (chatSDK !== undefined && msg !== "" && thisStarted && !sentInitMsg && props.showWidget === props.omnichannelConfig.widgetId) {
+        if (chatSDK !== undefined && msg !== "" && locState?.hasChatStarted && !sentInitMsg && props.showWidget === props.omnichannelConfig.widgetId) {
             console.log('initial message to send');
             const message = "<internal>" + msg;
             const messageToSend = {
@@ -275,7 +273,7 @@ function ChatControl(props: any) {
 
     useEffect(() => {
         sendInitMessage(props.initMsg);
-    }, [props.initMsg, thisStarted]);
+    }, [props.initMsg, locState?.hasChatStarted]);
 
     useEffect(() => {
         if (props.autoOpen && props.showWidget === props.omnichannelConfig.widgetId) {
