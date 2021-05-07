@@ -3,7 +3,16 @@
     padding: 10px;
     display: flex;
     justify-content: space-between;
-    background: whitesmoke;
-    color: black;
+    background: #004795;
+    color: white;
     font-weight: bold;
+}
+.goldBar {
+ background-color: #fac922;
+ height: 3px;
+}
+.header-wrapper{
+    border-top:whitesmoke solid 1px;
+    border-left: whitesmoke solid 1px;
+    border-right: whitesmoke solid 1px;
 }

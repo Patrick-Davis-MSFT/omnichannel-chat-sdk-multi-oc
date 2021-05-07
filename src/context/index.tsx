@@ -2,18 +2,12 @@ import React, {createContext, useReducer, Context} from 'react';
 
 enum ActionType {
   SET_CHAT_STARTED,
-  SET_MESSAGES,
-  SET_TYPING,
-  SET_AGENT_END_SESSION_EVENT,
-  SET_LOADING
+  SET_LOGIN
 }
 
 interface IState {
   hasChatStarted: boolean,
-  messages: any[],
-  isTyping: boolean,
-  agentEndSessionEvent: boolean,
-  isLoading: boolean
+  hasLogin: boolean
 }
 
 interface StoreContext {
@@ -23,10 +17,7 @@ interface StoreContext {
 
 const initialState = {
   hasChatStarted: false,
-  messages: [] as any,
-  isTyping: false,
-  agentEndSessionEvent: false,
-  isLoading: false
+  hasLogin: false
 };
 
 const Reducer = (state: any, action: any) => {
@@ -37,30 +28,12 @@ const Reducer = (state: any, action: any) => {
         type: action.type,
         hasChatStarted: action.payload
       }
-    case ActionType.SET_MESSAGES:
+    case ActionType.SET_LOGIN:
       return {
         ...state,
         type: action.type,
-        messages: action.payload
+        hasLogin: action.payload
       };
-    case ActionType.SET_TYPING:
-      return {
-        ...state,
-        type: action.type,
-        isTyping: action.payload
-      }
-    case ActionType.SET_AGENT_END_SESSION_EVENT:
-      return {
-        ...state,
-        type: action.type,
-        agentEndSessionEvent: action.payload
-      }
-    case ActionType.SET_LOADING:
-      return {
-        ...state,
-        type: action.type,
-        isLoading: action.payload
-      }
     default:
       return state;
   }

@@ -10,13 +10,14 @@ interface ChatHeaderProps {
 }
 
 function ChatHeader(props: ChatHeaderProps) {
-  return (
+  return (<div className='header-wrapper'>
     <div className="chat-header">
     <span> {props.title} </span>
       <div onClick={props.onClick}>
         <X />
       </div>
     </div>
+    <div className="goldBar"/></div>
   );
 }
 

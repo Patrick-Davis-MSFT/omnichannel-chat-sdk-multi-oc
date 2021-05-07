@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState, useContext, useReducer } from 
 import ReactDom from 'react-dom';
 import ReactWebChat from 'botframework-webchat';
 import { IRawMessage, OmnichannelChatSDK } from '@microsoft/omnichannel-chat-sdk';
-//import { ActionType, Store } from '../../context';
+import { ActionType, Store } from '../../context';
 import Loading from '../Loading/Loading';
 import ChatButton from '../ChatButton/ChatButton';
 import ChatHeader from '../ChatHeader/ChatHeader';
@@ -40,7 +40,7 @@ function setLocChatStarted(state: ILocState | undefined, val: boolean) {
     if (!state) {
         var retVal = {
             hasChatStarted: val,
-            isLoading: false
+            isLoading: true //start the control as loading
         };
         return retVal;
     }
@@ -57,20 +57,25 @@ function setLocLoading(state: ILocState | undefined, val: boolean) {
     }
     return { ...state, isLoading: val };
 }
+function initLocState(){
+    return {
+        hasChatStarted:false,
+        isLoading: true
+    };
+}
 
 function ChatControl(props: any) {
 
 
 
 
-    const [locState, setLocState] = useState<ILocState>();
+    const [locState, setLocState] = useState<ILocState>(initLocState());
 
-    //const { state, dispatch } = useContext(Store);
+    const { state, dispatch } = useContext(Store);
     const [chatSDK, setChatSDK] = useState<OmnichannelChatSDK>();
     const [VoiceVideoCallingSDK, setVoiceVideoCallingSDK] = useState(undefined);
     const [transferActive, setTransferActive] = useState(Boolean);
     const [transferTo, setTransferTo] = useState(String);
-    //const [thisStarted, setThisStarted] = useState(Boolean);
     const [webChatStore, setWebChatStore] = useState(undefined);
     const [chatAdapter, setChatAdapter] = useState<any>(undefined);
     const [chatToken, setChatToken] = useState(undefined);
@@ -98,8 +103,7 @@ function ChatControl(props: any) {
             });
 
             if (chatSDK === undefined) {
-
-
+                                
                 console.log('[ChatControl -> init()]');
                 console.log(props);
 
@@ -182,6 +186,7 @@ function ChatControl(props: any) {
                 return;
             }
         }
+        dispatch({ type: ActionType.SET_CHAT_STARTED, payload: true });
 
         console.log('[startChat]');
         setTransferActive(false);
@@ -231,7 +236,6 @@ function ChatControl(props: any) {
             const chatToken: any = await chatSDK?.getChatToken();
             setChatToken(chatToken);
         }
-        
         setLocState(tempState);
     }, [chatSDK, onAgentEndSession, onNewMessage, onTypingEvent]);
 
@@ -247,6 +251,7 @@ function ChatControl(props: any) {
         localStorage.removeItem('liveChatContext-' + props.omnichannelConfig.widgetId);
         const tempState = setLocChatStarted(locState, false);
         setLocState(tempState);
+        dispatch({ type: ActionType.SET_CHAT_STARTED, payload: false });
     }, [chatSDK, VoiceVideoCallingSDK]);
 
     const TransferClick = useCallback(async (_, optionalParams = {}) => {
@@ -286,13 +291,13 @@ function ChatControl(props: any) {
         return (<>
             <div>
                 {
-                    !locState?.hasChatStarted && <ChatButton btnText={props.btnText} onClick={startChat} />
+                    !state?.hasChatStarted && <ChatButton btnText={props.btnText} onClick={startChat} />
                 }
             </div>
             {
-                locState?.hasChatStarted && <div className="chat-container">
+                state?.hasChatStarted && <div className="chat-container">
                     <ChatHeader
-                        title={'Chatting: ' + props.btnText}
+                        title={'Talking with: ' + props.omnichannelConfig.chatHeader}
                         onClick={endChat}
                     />
                     {
@@ -323,7 +328,7 @@ function ChatControl(props: any) {
                             />*/
                     }
                     {
-                        !locState.isLoading && locState.hasChatStarted && chatAdapter && transferActive && <TransferButton
+                        !locState?.isLoading && locState?.hasChatStarted && chatAdapter && transferActive && <TransferButton
                             buttonString="Click Me To Transfer"
                             hide={false}
                             onClick={TransferClick}

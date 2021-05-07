@@ -6,7 +6,8 @@ const fetchOmnichannelConfig = (chatIDX: number) => {
       var omnichannelConfig = { // Default config
         orgId: testVal[chatIDX].orgId || '',
         orgUrl: testVal[chatIDX].orgUrl || '',
-        widgetId: testVal[chatIDX].widgetId || ''
+        widgetId: testVal[chatIDX].widgetId || '',
+        chatHeader: testVal[chatIDX].chatHeader || ''
       };
       return omnichannelConfig;
     }
@@ -14,7 +15,8 @@ const fetchOmnichannelConfig = (chatIDX: number) => {
   var emptyConfig = { // Default config
     orgId: '',
     orgUrl: '',
-    widgetId: ''
+    widgetId: '',
+    chatHeader:'Not Configured'
   };
   return emptyConfig;
 }
